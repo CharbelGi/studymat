@@ -19,39 +19,53 @@ export const Header = ({ onOpenModal, pendingUrgentCount = 2, userName = "Fernan
     return date.toLocaleTimeString('es-ES', { hour12: false });
   };
 
+  // Limpia el nombre si viene un correo electrónico completo
+  const limpiarNombre = (nombre) => {
+    if (!nombre) return 'Usuario';
+    const base = nombre.includes('@') ? nombre.split('@')[0] : nombre;
+    // Capitaliza la primera letra
+    return base.charAt(0).toUpperCase() + base.slice(1);
+  };
+
+  const nombreCorto = limpiarNombre(userName);
+
   return (
-    <header className="bg-white px-4 py-3 border-bottom shadow-sm">
-      <div className="container-fluid d-flex align-items-center justify-content-between">
+    <header className="bg-white px-2 px-md-4 py-2 py-md-3 border-bottom shadow-sm">
+      <div className="container-fluid d-flex align-items-center justify-content-between flex-wrap gap-2">
         
-        {/* Lado Izquierdo: Menú, Fecha y Hora */}
-        <div className="d-flex align-items-center gap-3">
-          <button className="btn btn-light p-2 border-0 text-secondary">
-            <Menu size={22} />
+        {/* Lado Izquierdo: Menú, Fecha y Hora (Oculto en pantallas ultra pequeñas para ganar espacio) */}
+        <div className="d-flex align-items-center gap-2 gap-md-3">
+          <button className="btn btn-light p-2 border-0 text-secondary rounded-3">
+            <Menu size={20} />
           </button>
-          <div className="d-flex flex-column">
-            <small className="text-muted fw-medium lh-1" style={{ fontSize: '0.8rem' }}>
+          
+          <div className="d-none d-sm-flex flex-column">
+            <small className="text-muted fw-medium lh-1" style={{ fontSize: '0.75rem' }}>
               {formatDate(time)}
             </small>
-            <span className="fw-bold text-dark lh-1 mt-1" style={{ fontSize: '0.95rem' }}>
+            <span className="fw-bold text-dark lh-1 mt-1" style={{ fontSize: '0.85rem' }}>
               {formatTime(time)}
             </span>
           </div>
         </div>
 
         {/* Lado Derecho: Acciones y Usuario */}
-        <div className="d-flex align-items-center gap-3">
+        <div className="d-flex align-items-center gap-2 gap-md-3 ms-auto">
+          
+          {/* Botón Nuevo Registro */}
           <button 
             onClick={onOpenModal}
-            className="btn btn-primary d-flex align-items-center gap-2 px-3 py-2 rounded-3 fw-semibold shadow-sm"
-            style={{ backgroundColor: '#4f46e5', borderColor: '#4f46e5' }}
+            className="btn btn-primary d-flex align-items-center gap-1 px-2.5 px-md-3 py-1.5 py-md-2 rounded-3 fw-semibold shadow-sm"
+            style={{ backgroundColor: '#4f46e5', borderColor: '#4f46e5', fontSize: '0.85rem' }}
           >
-            <Plus size={18} />
-            <span>Nuevo Registro</span>
+            <Plus size={16} />
+            <span className="d-none d-xs-inline">Nuevo Registro</span>
           </button>
 
+          {/* Botón Notificaciones */}
           <div className="position-relative">
             <button className="btn btn-light p-2 border-0 text-secondary rounded-3 position-relative">
-              <Bell size={20} />
+              <Bell size={18} />
               {pendingUrgentCount > 0 && (
                 <span className="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
                   <span className="visually-hidden">Alertas</span>
@@ -60,19 +74,22 @@ export const Header = ({ onOpenModal, pendingUrgentCount = 2, userName = "Fernan
             </button>
           </div>
 
-          <div className="vr mx-1" style={{ height: '24px', opacity: 0.15 }}></div>
+          <div className="vr mx-0 d-none d-md-block" style={{ height: '24px', opacity: 0.15 }}></div>
 
-          {/* Perfil de Usuario */}
+          {/* Perfil de Usuario (Muestra solo el nombre corto, sin desbordar el correo) */}
           <div className="d-flex align-items-center gap-2">
             <div 
-              className="rounded-3 d-flex align-items-center justify-content-center fw-bold"
-              style={{ width: '38px', height: '38px', backgroundColor: '#e0e7ff', color: '#4338ca' }}
+              className="rounded-3 d-flex align-items-center justify-content-center fw-bold flex-shrink-0"
+              style={{ width: '34px', height: '34px', backgroundColor: '#e0e7ff', color: '#4338ca', fontSize: '0.9rem' }}
             >
-              {userName.charAt(0)}
+              {nombreCorto.charAt(0)}
             </div>
-            <div className="d-flex flex-column text-start">
-              <span className="fw-bold text-dark lh-1" style={{ fontSize: '0.875rem' }}>{userName}</span>
-              <small className="text-muted" style={{ fontSize: '0.75rem' }}>{userRole}</small>
+            
+            <div className="d-none d-md-flex flex-column text-start">
+              <span className="fw-bold text-dark lh-1 text-truncate" style={{ fontSize: '0.85rem', maxWidth: '100px' }}>
+                {nombreCorto}
+              </span>
+              <small className="text-muted" style={{ fontSize: '0.7rem' }}>{userRole}</small>
             </div>
           </div>
 
