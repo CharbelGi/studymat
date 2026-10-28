@@ -126,7 +126,7 @@ export default function Login() {
                   </div>
 
                   <div className="mb-2">
-                    <label className="form-label fw-semibold small mb-1">Nombre de usuario</label>
+                    <label className="form-label fw-semibold small mb-1">Nombre de fernando</label>
                     <input 
                       type="text" 
                       className="form-control form-control-sm" 
