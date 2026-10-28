@@ -81,13 +81,13 @@ export default function ClimaCompacto() {
 
   if (cargando) {
     return (
-      <div className="card border-0 shadow-sm rounded-4 p-2 h-100 bg-white placeholder-glow">
+      <div className="card border-0 shadow-sm rounded-4 p-3 h-100 bg-white placeholder-glow">
         <div className="d-flex align-items-center justify-content-between p-1">
           <div>
             <span className="placeholder col-6 mb-2 d-block" style={{ height: '10px' }}></span>
-            <span className="placeholder col-4 d-block" style={{ height: '20px' }}></span>
+            <span className="placeholder col-4 d-block" style={{ height: '24px' }}></span>
           </div>
-          <span className="placeholder rounded-3" style={{ width: '36px', height: '36px' }}></span>
+          <span className="placeholder rounded-3" style={{ width: '40px', height: '40px' }}></span>
         </div>
       </div>
     );
@@ -96,27 +96,27 @@ export default function ClimaCompacto() {
   const estado = clima ? obtenerEstadoClima(clima.codigo) : { texto: "Desconocido", icono: "🌡️" };
 
   return (
-    <div className="card border-0 shadow-sm rounded-4 p-2 h-100 bg-white position-relative overflow-hidden">
-      <div className="card-body d-flex justify-content-between align-items-center p-2">
+    <div className="card border-0 shadow-sm rounded-4 p-3 h-100 bg-white position-relative overflow-hidden">
+      <div className="card-body d-flex justify-content-between align-items-center p-0">
         <div>
           <div className="d-flex align-items-center gap-1 mb-1">
-            <small className="text-muted fw-bold text-uppercase" style={{ fontSize: '0.65rem' }}>
+            <small className="text-muted fw-bold text-uppercase" style={{ fontSize: '0.7rem' }}>
               Clima Actual {esOffline && <span className="text-warning" title="Modo offline">⚠️</span>}
             </small>
           </div>
           
           <div className="d-flex align-items-baseline gap-2">
-            <span className="fs-3 fw-bold text-dark">{clima ? `${clima.temperatura}°C` : '--'}</span>
-            <span className="text-muted small text-truncate" style={{ maxWidth: '90px', fontSize: '0.75rem' }}>{estado.texto}</span>
+            <span className="fs-2 fw-bold text-dark">{clima ? `${clima.temperatura}°C` : '--'}</span>
+            <span className="text-muted small text-truncate" style={{ maxWidth: '100px', fontSize: '0.75rem' }}>{estado.texto}</span>
           </div>
 
-          <div className="d-flex gap-2 mt-1 text-muted" style={{ fontSize: '0.7rem' }}>
-            <span><Droplets size={10} className="me-1" />{clima?.humedad}%</span>
-            <span><Wind size={10} className="me-1" />{clima?.viento} km/h</span>
+          <div className="d-flex gap-3 mt-2 text-muted" style={{ fontSize: '0.75rem' }}>
+            <span><Droplets size={12} className="me-1" />{clima?.humedad}%</span>
+            <span><Wind size={12} className="me-1" />{clima?.viento} km/h</span>
           </div>
         </div>
 
-        <div className="p-2 rounded-3 text-primary d-flex align-items-center justify-content-center" style={{ backgroundColor: '#e0f2fe', fontSize: '1.5rem', minWidth: '48px', minHeight: '48px' }}>
+        <div className="p-3 rounded-3 text-primary d-flex align-items-center justify-content-center" style={{ backgroundColor: '#e0f2fe', fontSize: '1.75rem', minWidth: '52px', minHeight: '52px' }}>
           {estado.icono}
         </div>
       </div>
