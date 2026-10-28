@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, Plus, Bell, LogOut } from 'lucide-react';
+import { Menu, Plus, LogOut } from 'lucide-react';
 
 export const Header = ({ 
   onOpenModal, 
   onLogout, 
-  pendingUrgentCount = 2, 
   userName = "Fernando", 
   userRole = "Estudiante" 
 }) => {
@@ -25,14 +24,10 @@ export const Header = ({
     return date.toLocaleTimeString('es-ES', { hour12: false });
   };
 
-  // Limpiador avanzado: Si es correo, quita el dominio (@gmail.com) y además limpia números si deseas un nombre más limpio
   const limpiarNombre = (nombreOEmail) => {
     if (!nombreOEmail) return 'Usuario';
-    // Si contiene '@', tomamos lo que está antes
     let base = nombreOEmail.includes('@') ? nombreOEmail.split('@')[0] : nombreOEmail;
-    // Opcional: Si quieres quitar los números del correo (ej. "Ferny2005" -> "Ferny"), descomenta la siguiente línea:
     base = base.replace(/[0-9]/g, '');
-    
     return base.charAt(0).toUpperCase() + base.slice(1);
   };
 
@@ -58,10 +53,9 @@ export const Header = ({
           </div>
         </div>
 
-        {/* Derecha: Botón Registro, Notificaciones, Usuario y Cerrar Sesión */}
+        {/* Derecha: Botón Registro, Usuario y Cerrar Sesión */}
         <div className="d-flex align-items-center gap-2 gap-md-3 ms-auto">
           
-          {/* Botón Nuevo Registro */}
           <button 
             onClick={onOpenModal}
             className="btn btn-primary d-flex align-items-center gap-1 px-3 py-1.5 py-md-2 rounded-3 fw-semibold shadow-sm"
@@ -70,18 +64,6 @@ export const Header = ({
             <Plus size={16} />
             <span className="d-none d-xs-inline">Nuevo Registro</span>
           </button>
-
-          {/* Notificaciones */}
-          <div className="position-relative">
-            <button className="btn btn-light p-2 border-0 text-secondary rounded-3 position-relative">
-              <Bell size={18} />
-              {pendingUrgentCount > 0 && (
-                <span className="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
-                  <span className="visually-hidden">Alertas</span>
-                </span>
-              )}
-            </button>
-          </div>
 
           <div className="vr mx-0 d-none d-md-block" style={{ height: '24px', opacity: 0.15 }}></div>
 
@@ -102,7 +84,7 @@ export const Header = ({
             </div>
           </div>
 
-          {/* Botón Cerrar Sesión integrado en la barra */}
+          {/* Botón Cerrar Sesión */}
           {onLogout && (
             <button 
               onClick={onLogout}
