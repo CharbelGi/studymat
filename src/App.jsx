@@ -70,18 +70,14 @@ export default function App() {
         </div>
       )}
 
+      {/* Header actualizado con el botón de salida integrado */}
       <Header 
         onOpenModal={() => setIsModalOpen(true)} 
+        onLogout={() => signOut(auth)} 
         pendingUrgentCount={estado.datos?.urgentCount || 0} 
         userName={user.email} 
         userRole="Estudiante"
       />
-
-      <div className="container text-end pt-2">
-        <button onClick={() => signOut(auth)} className="btn btn-outline-danger btn-sm">
-          Cerrar Sesión
-        </button>
-      </div>
 
       <main className="container-fluid py-4 px-4" aria-live="polite">
         {estado.fase === 'cargando' && <DashboardHeaderSkeleton />}
