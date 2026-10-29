@@ -27,9 +27,7 @@ export const Header = ({
     };
   }, []);
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   const formatDate = (date) => {
     const options = { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' };
@@ -37,9 +35,7 @@ export const Header = ({
     return formatted.charAt(0).toUpperCase() + formatted.slice(1).replace('.', '');
   };
 
-  const formatTime = (date) => {
-    return date.toLocaleTimeString('es-ES', { hour12: false });
-  };
+  const formatTime = (date) => date.toLocaleTimeString('es-ES', { hour12: false });
 
   const limpiarNombre = (nombreOEmail) => {
     if (!nombreOEmail) return 'Usuario';
@@ -55,7 +51,6 @@ export const Header = ({
       <header className="bg-white px-3 px-md-4 py-2 py-md-3 border-bottom shadow-sm">
         <div className="container-fluid d-flex align-items-center justify-content-between flex-wrap gap-2">
           
-          {/* Izquierda: Menú (3 rayitas), Fecha y Hora */}
           <div className="d-flex align-items-center gap-2 gap-md-3">
             <button 
               onClick={toggleSidebar}
@@ -76,7 +71,6 @@ export const Header = ({
             </div>
           </div>
 
-          {/* Centro / Derecha: Indicador de Red, Nuevo Registro y Perfil */}
           <div className="d-flex align-items-center gap-2 ms-auto">
             <span 
               className={`badge d-flex align-items-center gap-1 px-3 py-2 rounded-pill fw-semibold shadow-sm ${
@@ -88,7 +82,6 @@ export const Header = ({
               <span>{isOnline ? 'En línea' : 'Sin conexión'}</span>
             </span>
 
-            {/* Botón Nuevo Registro */}
             <button 
               onClick={onOpenModal}
               className="btn btn-primary d-flex align-items-center gap-1 px-3 py-1.5 py-md-2 rounded-3 fw-semibold shadow-sm"
@@ -100,7 +93,6 @@ export const Header = ({
 
             <div className="vr mx-0 d-none d-md-block" style={{ height: '24px', opacity: 0.15 }}></div>
 
-            {/* Perfil de Usuario (Sin botón de Salir aquí afuera) */}
             <div className="d-flex align-items-center gap-2">
               <div 
                 className="rounded-3 d-flex align-items-center justify-content-center fw-bold flex-shrink-0"
@@ -121,21 +113,18 @@ export const Header = ({
         </div>
       </header>
 
-      {/* --- MENÚ LATERAL SLIDER (OFFCANVAS) --- */}
+      {/* Menú Lateral Offcanvas */}
       {isSidebarOpen && (
         <>
-          {/* Fondo oscuro traslúcido para cerrar al hacer clic afuera */}
           <div 
             className="position-fixed top-0 start-0 w-100 h-100 bg-dark opacity-50 z-3"
             onClick={toggleSidebar}
           ></div>
 
-          {/* Panel Lateral */}
           <div 
             className="position-fixed top-0 start-0 h-100 bg-white shadow-lg z-3 d-flex flex-column p-4"
             style={{ width: '280px', transition: 'all 0.3s ease' }}
           >
-            {/* Cabecera del Menú */}
             <div className="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
               <div className="d-flex align-items-center gap-2">
                 <div className="text-white rounded-3 p-1.5 d-flex align-items-center justify-content-center" style={{ backgroundColor: '#4f46e5' }}>
@@ -148,7 +137,6 @@ export const Header = ({
               </button>
             </div>
 
-            {/* Opciones de Navegación */}
             <nav className="d-flex flex-column gap-2 flex-grow-1">
               <a href="#" onClick={toggleSidebar} className="btn btn-light d-flex align-items-center gap-3 text-start fw-semibold py-2 px-3 rounded-3 text-primary bg-light border-0">
                 <Home size={18} />
@@ -164,7 +152,6 @@ export const Header = ({
               </a>
             </nav>
 
-            {/* Pie del Menú Lateral (Aquí vive el botón de Salir ahora) */}
             <div className="border-top pt-3 mt-auto">
               <div className="d-flex align-items-center gap-2 mb-3">
                 <div 
