@@ -2,7 +2,6 @@ import React from 'react';
 import { CheckSquare, FileText, Folder } from 'lucide-react';
 import ClimaCompacto from '../components/ClimaCompacto';
 
-// Skeleton exclusivo para el área de contenido
 export const DashboardHeaderSkeleton = () => {
   return (
     <div className="w-100 placeholder-glow">
@@ -34,7 +33,6 @@ export const DashboardHeaderSkeleton = () => {
   );
 };
 
-// Componente DashboardHeader Real
 export const DashboardHeader = ({ 
   userName = "Fernando", 
   urgentCount = 0, 
@@ -42,13 +40,10 @@ export const DashboardHeader = ({
   upcomingExams = 0, 
   activeProjects = 0 
 }) => {
-  // Limpia el correo para mostrar sólo el nombre de usuario
   const nombreCorto = userName.includes('@') ? userName.split('@')[0] : userName;
 
   return (
     <div className="w-100 px-2 px-md-0">
-      
-      {/* Banner Principal del Dashboard */}
       <div 
         className="position-relative overflow-hidden text-white rounded-4 p-4 mb-4 shadow-sm"
         style={{ 
@@ -69,10 +64,7 @@ export const DashboardHeader = ({
         </div>
       </div>
 
-      {/* Cuadrícula de Métricas y Clima (1 columna en cel, 2 en tablet, 4 horizontales en laptop) */}
       <div className="row g-3">
-        
-        {/* Tareas Pendientes */}
         <div className="col-12 col-sm-6 col-xl-3">
           <div className="card border-0 shadow-sm rounded-4 p-3 h-100 bg-white">
             <div className="card-body d-flex justify-content-between align-items-center p-2">
@@ -92,7 +84,6 @@ export const DashboardHeader = ({
           </div>
         </div>
 
-        {/* Próximos Exámenes */}
         <div className="col-12 col-sm-6 col-xl-3">
           <div className="card border-0 shadow-sm rounded-4 p-3 h-100 bg-white">
             <div className="card-body d-flex justify-content-between align-items-center p-2">
@@ -112,7 +103,6 @@ export const DashboardHeader = ({
           </div>
         </div>
 
-        {/* Proyectos Activos */}
         <div className="col-12 col-sm-6 col-xl-3">
           <div className="card border-0 shadow-sm rounded-4 p-3 h-100 bg-white">
             <div className="card-body d-flex justify-content-between align-items-center p-2">
@@ -132,11 +122,9 @@ export const DashboardHeader = ({
           </div>
         </div>
 
-        {/* Widget de Clima Compacto */}
         <div className="col-12 col-sm-6 col-xl-3">
           <ClimaCompacto />
         </div>
-
       </div>
     </div>
   );

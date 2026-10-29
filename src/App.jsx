@@ -55,17 +55,14 @@ export default function App() {
     }
   };
 
-  // 1. Mientras Firebase determina si hay sesión activa, mantén el fondo limpio sin renderizar el menú
   if (checkingAuth) {
-    return <div className="w-100 min-vh-100 bg-light"></div>;
+    return <div className="text-center mt-5">Cargando StudyMate...</div>;
   }
 
-  // 2. Si terminó de verificar y no hay usuario, redirige inmediatamente al Login
   if (!user) {
     return <Login />;
   }
 
-  // 3. Si hay un usuario autenticado, renderiza la app completa
   return (
     <BrowserRouter>
       <div className="w-100 min-vh-100 bg-light text-dark m-0 p-0 position-relative">
@@ -80,9 +77,9 @@ export default function App() {
         <Routes>
           <Route path="/" element={
             <main className="container-fluid py-4 px-4" aria-live="polite">
-              {estado.fase === 'cargando' ? (
-                <DashboardHeaderSkeleton />
-              ) : estado.fase === 'listo' ? (
+              {estado.fase === 'cargando' && <DashboardHeaderSkeleton />}
+
+              {estado.fase === 'listo' && (
                 <DashboardHeader 
                   userName={user.email}
                   urgentCount={estado.datos.urgentCount}
@@ -90,7 +87,7 @@ export default function App() {
                   upcomingExams={estado.datos.upcomingExams}
                   activeProjects={estado.datos.activeProjects}
                 />
-              ) : null}
+              )}
             </main>
           } />
 
