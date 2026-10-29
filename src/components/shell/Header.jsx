@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, Plus, LogOut } from 'lucide-react';
+import { Menu, Plus, Bell, Wifi, WifiOff, LogOut } from 'lucide-react';
 
 export const Header = ({ 
   onOpenModal, 
@@ -8,10 +8,23 @@ export const Header = ({
   userRole = "Estudiante" 
 }) => {
   const [time, setTime] = useState(new Date());
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(timer);
+    
+    // Detectar cambios de conexión en tiempo real
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, []);
 
   const formatDate = (date) => {
@@ -53,9 +66,19 @@ export const Header = ({
           </div>
         </div>
 
-        {/* Derecha: Botón Registro, Usuario y Cerrar Sesión */}
-        <div className="d-flex align-items-center gap-2 gap-md-3 ms-auto">
-          
+        {/* Centro / Derecha: Indicador de Red (Verde / Rojo) */}
+        <div className="d-flex align-items-center gap-2 ms-auto">
+          <span 
+            className={`badge d-flex align-items-center gap-1 px-3 py-2 rounded-pill fw-semibold shadow-sm ${
+              isOnline ? 'bg-success text-white' : 'bg-danger text-white'
+            }`}
+            style={{ fontSize: '0.75rem', transition: 'background-color 0.3s ease' }}
+          >
+            {isOnline ? <Wifi size={14} /> : <WifiOff size={14} />}
+            <span>{isOnline ? 'En línea' : 'Sin conexión'}</span>
+          </span>
+
+          {/* Botón Nuevo Registro */}
           <button 
             onClick={onOpenModal}
             className="btn btn-primary d-flex align-items-center gap-1 px-3 py-1.5 py-md-2 rounded-3 fw-semibold shadow-sm"
@@ -67,7 +90,7 @@ export const Header = ({
 
           <div className="vr mx-0 d-none d-md-block" style={{ height: '24px', opacity: 0.15 }}></div>
 
-          {/* Perfil de Usuario con Nombre Limpio */}
+          {/* Perfil de Usuario */}
           <div className="d-flex align-items-center gap-2">
             <div 
               className="rounded-3 d-flex align-items-center justify-content-center fw-bold flex-shrink-0"
@@ -77,7 +100,7 @@ export const Header = ({
             </div>
             
             <div className="d-none d-md-flex flex-column text-start">
-              <span className="fw-bold text-dark lh-1 text-truncate" style={{ fontSize: '0.85rem', maxWidth: '130px' }}>
+              <span className="fw-bold text-dark lh-1 text-truncate" style={{ fontSize: '0.85rem', maxWidth: '120px' }}>
                 {nombreCorto}
               </span>
               <small className="text-muted" style={{ fontSize: '0.7rem' }}>{userRole}</small>
