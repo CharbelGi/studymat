@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { auth, db } from './config/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -16,18 +16,7 @@ export default function App() {
   const [estado, setEstado] = useState({ fase: 'cargando' });
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setCheckingAuth(false);
-      if (currentUser) {
-        cargarDatosDesdeNube();
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
+  // 1. Declaramos la función primero para que esté disponible antes de llamarse en el useEffect
   const cargarDatosDesdeNube = async () => {
     setEstado({ fase: 'cargando' });
 
@@ -54,6 +43,18 @@ export default function App() {
       setEstado({ fase: 'error', mensaje: "No se pudieron sincronizar los datos de Firebase." });
     }
   };
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setCheckingAuth(false);
+      if (currentUser) {
+        cargarDatosDesdeNube();
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   if (checkingAuth) {
     return <div className="text-center mt-5">Cargando StudyMate...</div>;
