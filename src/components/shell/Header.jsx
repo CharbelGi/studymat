@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, Plus, Wifi, WifiOff, LogOut, X, Home, Calendar, BookOpen, CheckSquare } from 'lucide-react';
+import InstallButton from './InstallButton'; // 👈 Como están en la misma carpeta shell, se importa con ./
 
 export const Header = ({ 
   onOpenModal, 
@@ -72,6 +73,10 @@ export const Header = ({
           </div>
 
           <div className="d-flex align-items-center gap-2 ms-auto">
+            
+            {/* 🚀 Botón de Instalación PWA integrado al lado de la red */}
+            <InstallButton />
+
             <span 
               className={`badge d-flex align-items-center gap-1 px-3 py-2 rounded-pill fw-semibold shadow-sm ${
                 isOnline ? 'bg-success text-white' : 'bg-danger text-white'
