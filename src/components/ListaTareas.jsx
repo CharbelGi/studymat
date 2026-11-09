@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { db, auth } from '../config/firebase';
 import { collection, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { CheckCircle, Clock, AlertTriangle, Calendar } from 'lucide-react';
@@ -7,28 +7,28 @@ export const ListaTareas = () => {
   const [tareas, setTareas] = useState([]);
   const [cargando, setCargando] = useState(true);
 
-  // Función para obtener las tareas desde Firebase
-  const obtenerTareas = async () => {
-    if (!auth.currentUser) return;
-    try {
-      const q = query(
-        collection(db, "actividades"),
-        where("userId", "==", auth.currentUser.uid)
-      );
-      const querySnapshot = await getDocs(q);
-      const lista = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setTareas(lista);
-    } catch (error) {
-      console.error("Error al obtener tareas:", error);
-    } finally {
-      setCargando(false);
-    }
-  };
-
   useEffect(() => {
+    // Función para obtener las tareas desde Firebase declarada dentro del efecto
+    const obtenerTareas = async () => {
+      if (!auth.currentUser) return;
+      try {
+        const q = query(
+          collection(db, "actividades"),
+          where("userId", "==", auth.currentUser.uid)
+        );
+        const querySnapshot = await getDocs(q);
+        const lista = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setTareas(lista);
+      } catch (error) {
+        console.error("Error al obtener tareas:", error);
+      } finally {
+        setCargando(false);
+      }
+    };
+
     obtenerTareas();
   }, []);
 
@@ -37,7 +37,20 @@ export const ListaTareas = () => {
     try {
       const tareaRef = doc(db, "actividades", id);
       await updateDoc(tareaRef, { completado: !estadoActual });
-      obtenerTareas(); // Recargar lista
+      
+      // Recargar la lista después de actualizar
+      if (auth.currentUser) {
+        const q = query(
+          collection(db, "actividades"),
+          where("userId", "==", auth.currentUser.uid)
+        );
+        const querySnapshot = await getDocs(q);
+        const lista = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setTareas(lista);
+      }
     } catch (error) {
       console.error("Error al actualizar tarea:", error);
     }

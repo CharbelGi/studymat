@@ -1,4 +1,3 @@
-import React from 'react';
 import { CheckSquare, FileText, Folder } from 'lucide-react';
 import ClimaCompacto from '../components/ClimaCompacto';
 import { ListaTareas } from '../components/ListaTareas'; // 👈 Importación nombrada con llaves exactas

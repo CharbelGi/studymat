@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { auth, db } from '../config/firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
@@ -126,7 +126,7 @@ export default function Login() {
                   </div>
 
                   <div className="mb-2">
-                    <label className="form-label fw-semibold small mb-1">Nombre de fernando</label>
+                    <label className="form-label fw-semibold small mb-1">Nombre de usuario</label>
                     <input 
                       type="text" 
                       className="form-control form-control-sm" 

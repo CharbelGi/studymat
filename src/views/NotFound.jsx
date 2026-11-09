@@ -1,4 +1,3 @@
-import React from 'react';
 import { MapPinOff, ArrowLeft } from 'lucide-react';
 
 export default function NotFound() {
