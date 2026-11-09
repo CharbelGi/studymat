@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { db, auth } from '../config/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { Camera, Upload, Loader2, CheckCircle2, Sparkles } from 'lucide-react';

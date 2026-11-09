@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Menu, Plus, Wifi, WifiOff, LogOut, X, Home, Calendar, BookOpen, CheckSquare } from 'lucide-react';
 import InstallButton from './InstallButton'; // 👈 Como están en la misma carpeta shell, se importa con ./
 
