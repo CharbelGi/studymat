@@ -69,7 +69,7 @@ export default function Login() {
               <span className="badge bg-white text-primary px-3 py-2 rounded-pill fw-bold shadow-sm">StudyMate Platform</span>
             </div>
             <div>
-              <h2 className="fw-bold mb-3 display-6">Organiza tu éxito académico</h2>
+              <h2 className="fw-bold mb-3 display-6">Organiza tu éxito charbel</h2>
               <p className="lead fs-6 text-white-50 mb-0">
                 {isRegistering 
                   ? 'Crea tu cuenta hoy y mantén el control absoluto de tus exámenes, tareas y proyectos universitarios.' 
