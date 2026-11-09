@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Droplets, Wind, Sparkles, Share2 } from 'lucide-react';
 import { compartirContenido } from '../config/shareUtils';
 
@@ -46,60 +46,60 @@ export default function ClimaCompacto() {
     };
   };
 
-  const cargarClima = () => {
-    setCargando(true);
-    if (!navigator.geolocation) {
-      cargarDatosOffline();
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude;
-        
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code,precipitation,wind_speed_10m&timezone=auto`;
-
-        try {
-          const res = await fetch(url);
-          if (!res.ok) throw new Error();
-          const data = await res.json();
-
-          const temp = Math.round(data.current.temperature_2m);
-          const codigo = data.current.weather_code;
-          const precipitacion = data.current.precipitation;
-          
-          const infoSugerencia = interpretarClimaEstudiantil(codigo, temp, precipitacion);
-
-          const datosClima = {
-            temperatura: temp,
-            humedad: data.current.relative_humidity_2m,
-            viento: data.current.wind_speed_10m,
-            ...infoSugerencia
-          };
-
-          setClima(datosClima);
-          setEsOffline(false);
-          setCargando(false);
-          localStorage.setItem('rutaclima_widget_cache', JSON.stringify(datosClima));
-        } catch {
-          cargarDatosOffline();
-        }
-      },
-      () => cargarDatosOffline()
-    );
-  };
-
-  const cargarDatosOffline = () => {
-    const cache = localStorage.getItem('rutaclima_widget_cache');
-    if (cache) {
-      setClima(JSON.parse(cache));
-      setEsOffline(true);
-    }
-    setCargando(false);
-  };
-
   useEffect(() => {
+    const cargarDatosOffline = () => {
+      const cache = localStorage.getItem('rutaclima_widget_cache');
+      if (cache) {
+        setClima(JSON.parse(cache));
+        setEsOffline(true);
+      }
+      setCargando(false);
+    };
+
+    const cargarClima = () => {
+      setCargando(true);
+      if (!navigator.geolocation) {
+        cargarDatosOffline();
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          
+          const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code,precipitation,wind_speed_10m&timezone=auto`;
+
+          try {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+
+            const temp = Math.round(data.current.temperature_2m);
+            const codigo = data.current.weather_code;
+            const precipitacion = data.current.precipitation;
+            
+            const infoSugerencia = interpretarClimaEstudiantil(codigo, temp, precipitacion);
+
+            const datosClima = {
+              temperatura: temp,
+              humedad: data.current.relative_humidity_2m,
+              viento: data.current.wind_speed_10m,
+              ...infoSugerencia
+            };
+
+            setClima(datosClima);
+            setEsOffline(false);
+            setCargando(false);
+            localStorage.setItem('rutaclima_widget_cache', JSON.stringify(datosClima));
+          } catch {
+            cargarDatosOffline();
+          }
+        },
+        () => cargarDatosOffline()
+      );
+    };
+
     cargarClima();
   }, []);
 

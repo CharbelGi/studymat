@@ -1,6 +1,6 @@
-import React from 'react';
 import { CheckSquare, FileText, Folder } from 'lucide-react';
 import ClimaCompacto from '../components/ClimaCompacto';
+import { ListaTareas } from '../components/ListaTareas'; // 👈 Importación nombrada con llaves exactas
 
 export const DashboardHeaderSkeleton = () => {
   return (
@@ -126,6 +126,9 @@ export const DashboardHeader = ({
           <ClimaCompacto />
         </div>
       </div>
+
+      {/* 🚀 Renderizado de tu lista de tareas con códigos de color de urgencia */}
+      <ListaTareas />
     </div>
   );
 };
