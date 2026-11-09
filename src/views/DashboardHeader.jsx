@@ -56,7 +56,7 @@ export const DashboardHeader = ({
             Panel del Estudiante
           </span>
           <h1 className="fw-bold fs-3 mb-2 text-break">
-            ¡Hola, {nombreCorto}! 👋
+            ¡Hola bienvenidos, {nombreCorto}! 👋
           </h1>
           <p className="text-white-50 small mb-0">
             Tienes <strong className="text-white text-decoration-underline" style={{ textDecorationColor: '#facc15' }}>{urgentCount} pendientes urgentes</strong> para hoy.
