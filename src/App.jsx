@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { auth, db } from './config/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -9,6 +9,11 @@ import { RegistroModal } from './components/RegistroModal';
 import NotificationFloating from './components/NotificationFloating';
 import Login from './components/login';
 import NotFound from './views/NotFound';
+import { Cargando } from './components/Estados';
+
+// Carga diferida (lazy) de las nuevas vistas del Paso 10
+const ListaRecursos = lazy(() => import('./views/ListaRecursos'));
+const DetalleRecurso = lazy(() => import('./views/DetalleRecurso'));
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -75,25 +80,39 @@ export default function App() {
           userRole="Estudiante"
         />
 
-        <Routes>
-          <Route path="/" element={
-            <main className="container-fluid py-4 px-4" aria-live="polite">
-              {estado.fase === 'cargando' && <DashboardHeaderSkeleton />}
+        <Suspense fallback={<Cargando />}>
+          <Routes>
+            <Route path="/" element={
+              <main className="container-fluid py-4 px-4" aria-live="polite">
+                {estado.fase === 'cargando' && <DashboardHeaderSkeleton />}
 
-              {estado.fase === 'listo' && (
-                <DashboardHeader 
-                  userName={user.email}
-                  urgentCount={estado.datos.urgentCount}
-                  pendingTasks={estado.datos.pendingTasks}
-                  upcomingExams={estado.datos.upcomingExams}
-                  activeProjects={estado.datos.activeProjects}
-                />
-              )}
-            </main>
-          } />
+                {estado.fase === 'listo' && (
+                  <DashboardHeader 
+                    userName={user.email}
+                    urgentCount={estado.datos.urgentCount}
+                    pendingTasks={estado.datos.pendingTasks}
+                    upcomingExams={estado.datos.upcomingExams}
+                    activeProjects={estado.datos.activeProjects}
+                  />
+                )}
+              </main>
+            } />
 
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+            <Route path="/recursos" element={
+              <main className="container-fluid py-4 px-4">
+                <ListaRecursos />
+              </main>
+            } />
+
+            <Route path="/recursos/:id" element={
+              <main className="container-fluid py-4 px-4">
+                <DetalleRecurso />
+              </main>
+            } />
+
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
 
         <NotificationFloating 
           pendingUrgentCount={estado.datos?.urgentCount || 0} 
