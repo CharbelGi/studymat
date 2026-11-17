@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Menu, Plus, Wifi, WifiOff, LogOut, X, Home, Calendar, BookOpen, CheckSquare } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Menu, Plus, Wifi, WifiOff, LogOut, X, Home, Calendar, BookOpen, CheckSquare, CloudSun } from 'lucide-react';
 import InstallButton from './InstallButton'; // 👈 Como están en la misma carpeta shell, se importa con ./
 
 export const Header = ({ 
@@ -143,10 +144,17 @@ export const Header = ({
             </div>
 
             <nav className="d-flex flex-column gap-2 flex-grow-1">
-              <a href="#" onClick={toggleSidebar} className="btn btn-light d-flex align-items-center gap-3 text-start fw-semibold py-2 px-3 rounded-3 text-primary bg-light border-0">
+              <Link to="/" onClick={toggleSidebar} className="btn btn-light d-flex align-items-center gap-3 text-start fw-semibold py-2 px-3 rounded-3 text-secondary border-0">
                 <Home size={18} />
                 <span>Panel Principal</span>
-              </a>
+              </Link>
+              
+              {/* 🚀 Enlace añadido para la vista de recursos / clima */}
+              <Link to="/recursos" onClick={toggleSidebar} className="btn btn-light d-flex align-items-center gap-3 text-start fw-semibold py-2 px-3 rounded-3 text-secondary border-0">
+                <CloudSun size={18} />
+                <span>Pronóstico y Recursos</span>
+              </Link>
+
               <a href="#" onClick={toggleSidebar} className="btn btn-light d-flex align-items-center gap-3 text-start fw-semibold py-2 px-3 rounded-3 text-secondary border-0">
                 <CheckSquare size={18} />
                 <span>Mis Tareas</span>
