@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, Plus, Wifi, WifiOff, LogOut, X, Home, Calendar, BookOpen, CheckSquare, CloudSun } from 'lucide-react';
-import InstallButton from './InstallButton'; // 👈 Como están en la misma carpeta shell, se importa con ./
+import { signOut } from 'firebase/auth';
+import { Menu, Plus, Wifi, WifiOff, LogOut, LogIn, X, Home, Calendar, BookOpen, CheckSquare, CloudSun } from 'lucide-react';
+import { auth } from '../../config/firebase';
+import InstallButton from './InstallButton';
 
 export const Header = ({ 
   onOpenModal, 
-  onLogout, 
-  userName = "Fernando", 
+  onLogout,
+  onLoginGoogle,
+  isAuthenticated = false,
+  userName = "Invitado", 
   userRole = "Estudiante" 
 }) => {
   const [time, setTime] = useState(new Date());
@@ -31,6 +35,29 @@ export const Header = ({
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
+  const handleCerrarSesion = async () => {
+    try {
+      toggleSidebar();
+      await signOut(auth);
+      if (onLogout) {
+        await onLogout();
+      }
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+    }
+  };
+
+  const handleIniciarGoogle = async () => {
+    try {
+      toggleSidebar();
+      if (onLoginGoogle) {
+        await onLoginGoogle();
+      }
+    } catch (error) {
+      console.error('Error al iniciar sesión con Google:', error);
+    }
+  };
+
   const formatDate = (date) => {
     const options = { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' };
     const formatted = date.toLocaleDateString('es-ES', options);
@@ -40,13 +67,13 @@ export const Header = ({
   const formatTime = (date) => date.toLocaleTimeString('es-ES', { hour12: false });
 
   const limpiarNombre = (nombreOEmail) => {
-    if (!nombreOEmail) return 'Usuario';
+    if (!nombreOEmail) return 'Invitado';
     let base = nombreOEmail.includes('@') ? nombreOEmail.split('@')[0] : nombreOEmail;
     base = base.replace(/[0-9]/g, '');
     return base.charAt(0).toUpperCase() + base.slice(1);
   };
 
-  const nombreCorto = limpiarNombre(userName);
+  const nombreCorto = isAuthenticated ? limpiarNombre(userName) : 'Invitado';
 
   return (
     <>
@@ -75,7 +102,6 @@ export const Header = ({
 
           <div className="d-flex align-items-center gap-2 ms-auto">
             
-            {/* 🚀 Botón de Instalación PWA integrado al lado de la red */}
             <InstallButton />
 
             <span 
@@ -111,7 +137,9 @@ export const Header = ({
                 <span className="fw-bold text-dark lh-1 text-truncate" style={{ fontSize: '0.85rem', maxWidth: '120px' }}>
                   {nombreCorto}
                 </span>
-                <small className="text-muted" style={{ fontSize: '0.7rem' }}>{userRole}</small>
+                <small className="text-muted" style={{ fontSize: '0.7rem' }}>
+                  {isAuthenticated ? userRole : 'Cuenta Google'}
+                </small>
               </div>
             </div>
 
@@ -149,7 +177,6 @@ export const Header = ({
                 <span>Panel Principal</span>
               </Link>
               
-              {/* 🚀 Enlace añadido para la vista de recursos / clima */}
               <Link to="/recursos" onClick={toggleSidebar} className="btn btn-light d-flex align-items-center gap-3 text-start fw-semibold py-2 px-3 rounded-3 text-secondary border-0">
                 <CloudSun size={18} />
                 <span>Pronóstico y Recursos</span>
@@ -175,17 +202,28 @@ export const Header = ({
                 </div>
                 <div className="d-flex flex-column">
                   <span className="fw-bold text-dark small">{nombreCorto}</span>
-                  <span className="text-muted" style={{ fontSize: '0.75rem' }}>{userName}</span>
+                  <span className="text-muted" style={{ fontSize: '0.75rem' }}>
+                    {isAuthenticated ? userName : 'Inicia sesión con Google'}
+                  </span>
                 </div>
               </div>
 
-              {onLogout && (
+              {isAuthenticated ? (
                 <button 
-                  onClick={() => { toggleSidebar(); onLogout(); }} 
+                  onClick={handleCerrarSesion} 
                   className="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center gap-2 btn-sm rounded-3 py-2 fw-semibold"
                 >
                   <LogOut size={16} />
                   <span>Cerrar Sesión</span>
+                </button>
+              ) : (
+                <button 
+                  onClick={handleIniciarGoogle} 
+                  className="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2 btn-sm rounded-3 py-2 fw-semibold"
+                  style={{ backgroundColor: '#4f46e5', borderColor: '#4f46e5' }}
+                >
+                  <LogIn size={16} />
+                  <span>Iniciar sesión con Google</span>
                 </button>
               )}
             </div>

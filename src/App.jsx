@@ -1,27 +1,52 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { auth, db } from './config/firebase';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
 import { collection, getDocs } from 'firebase/firestore';
+import { auth, db, googleProvider } from './config/firebase';
 import { Header } from './components/shell/Header';
 import { DashboardHeader, DashboardHeaderSkeleton } from './views/DashboardHeader';
 import { RegistroModal } from './components/RegistroModal';
 import NotificationFloating from './components/NotificationFloating';
-import Login from './components/login';
 import NotFound from './views/NotFound';
 import { Cargando } from './components/Estados';
 
-// Carga diferida (lazy) de las nuevas vistas del Paso 10
 const ListaRecursos = lazy(() => import('./views/ListaRecursos'));
 const DetalleRecurso = lazy(() => import('./views/DetalleRecurso'));
 
 export default function App() {
-  const [user, setUser] = useState(null);
-  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [usuarioAuth, setUsuarioAuth] = useState(null);
   const [estado, setEstado] = useState({ fase: 'cargando' });
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // 1. Declaramos la función primero para que esté disponible antes de llamarse en el useEffect
+  const user = {
+    uid: usuarioAuth?.uid || null,
+    email: usuarioAuth?.displayName || usuarioAuth?.email || 'Invitado',
+  };
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUsuarioAuth(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleLoginGoogle = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (error) {
+      console.error('Error al iniciar sesión con Google:', error);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setUsuarioAuth(null);
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+    }
+  };
+
   const cargarDatosDesdeNube = async () => {
     setEstado({ fase: 'cargando' });
 
@@ -45,37 +70,32 @@ export default function App() {
       });
     } catch (error) {
       console.error("Error al conectar con Firestore:", error);
-      setEstado({ fase: 'error', mensaje: "No se pudieron sincronizar los datos de Firebase." });
+      setEstado({ 
+        fase: 'listo', 
+        datos: { 
+          urgentCount: 0, 
+          pendingTasks: 0, 
+          upcomingExams: 0, 
+          activeProjects: 0,
+          listaActividades: []
+        } 
+      });
     }
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setCheckingAuth(false);
-      if (currentUser) {
-        cargarDatosDesdeNube();
-      }
-    });
-
-    return () => unsubscribe();
+    cargarDatosDesdeNube();
   }, []);
-
-  if (checkingAuth) {
-    return <div className="text-center mt-5">Cargando StudyMate...</div>;
-  }
-
-  if (!user) {
-    return <Login />;
-  }
 
   return (
     <BrowserRouter>
       <div className="w-100 min-vh-100 bg-light text-dark m-0 p-0 position-relative">
         
         <Header 
-          onOpenModal={() => setIsModalOpen(true)} 
-          onLogout={() => signOut(auth)} 
+          onOpenModal={() => setIsModalOpen(true)}
+          onLogout={handleLogout}
+          onLoginGoogle={handleLoginGoogle}
+          isAuthenticated={Boolean(usuarioAuth)}
           userName={user.email} 
           userRole="Estudiante"
         />
