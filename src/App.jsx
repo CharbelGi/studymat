@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
 import { collection, getDocs } from 'firebase/firestore';
@@ -13,9 +13,17 @@ import { Cargando } from './components/Estados';
 const ListaRecursos = lazy(() => import('./views/ListaRecursos'));
 const DetalleRecurso = lazy(() => import('./views/DetalleRecurso'));
 
+const DATOS_VACIOS = {
+  urgentCount: 0,
+  pendingTasks: 0,
+  upcomingExams: 0,
+  activeProjects: 0,
+  listaActividades: [],
+};
+
 export default function App() {
   const [usuarioAuth, setUsuarioAuth] = useState(null);
-  const [estado, setEstado] = useState({ fase: 'cargando' });
+  const [estado, setEstado] = useState({ fase: 'cargando', datos: DATOS_VACIOS });
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const user = {
@@ -47,101 +55,149 @@ export default function App() {
     }
   };
 
-  const cargarDatosDesdeNube = async () => {
-    setEstado({ fase: 'cargando' });
+  const cargarDatosDesdeNube = useCallback(async () => {
+    if (!auth.currentUser) {
+      setEstado({ fase: 'listo', datos: DATOS_VACIOS });
+      return;
+    }
+
+    setEstado((prev) => ({ ...prev, fase: 'cargando' }));
 
     try {
-      const querySnapshot = await getDocs(collection(db, "actividades"));
-      const actividades = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const querySnapshot = await getDocs(collection(db, 'actividades'));
+      const actividades = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
-      const tareas = actividades.filter(a => a.tipo === 'tarea').length;
-      const examenes = actividades.filter(a => a.tipo === 'examen').length;
-      const proyectos = actividades.filter(a => a.tipo === 'proyecto').length;
+      const tareas = actividades.filter((a) => a.tipo === 'tarea').length;
+      const examenes = actividades.filter((a) => a.tipo === 'examen').length;
+      const proyectos = actividades.filter((a) => a.tipo === 'proyecto').length;
 
-      setEstado({ 
-        fase: 'listo', 
-        datos: { 
-          urgentCount: examenes + tareas, 
-          pendingTasks: tareas, 
-          upcomingExams: examenes, 
+      setEstado({
+        fase: 'listo',
+        datos: {
+          urgentCount: examenes + tareas,
+          pendingTasks: tareas,
+          upcomingExams: examenes,
           activeProjects: proyectos,
-          listaActividades: actividades
-        } 
+          listaActividades: actividades,
+        },
       });
     } catch (error) {
-      console.error("Error al conectar con Firestore:", error);
-      setEstado({ 
-        fase: 'listo', 
-        datos: { 
-          urgentCount: 0, 
-          pendingTasks: 0, 
-          upcomingExams: 0, 
-          activeProjects: 0,
-          listaActividades: []
-        } 
+      console.error('Error al conectar con Firestore:', error);
+      setEstado({
+        fase: 'listo',
+        datos: DATOS_VACIOS,
       });
     }
-  };
+  }, []);
 
   useEffect(() => {
-    cargarDatosDesdeNube();
-  }, []);
+    let activo = true;
+
+    const iniciarDatos = async () => {
+      if (!usuarioAuth) {
+        if (activo) {
+          setEstado({ fase: 'listo', datos: DATOS_VACIOS });
+        }
+        return;
+      }
+
+      try {
+        const querySnapshot = await getDocs(collection(db, 'actividades'));
+        if (!activo) return;
+
+        const actividades = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        const tareas = actividades.filter((a) => a.tipo === 'tarea').length;
+        const examenes = actividades.filter((a) => a.tipo === 'examen').length;
+        const proyectos = actividades.filter((a) => a.tipo === 'proyecto').length;
+
+        setEstado({
+          fase: 'listo',
+          datos: {
+            urgentCount: examenes + tareas,
+            pendingTasks: tareas,
+            upcomingExams: examenes,
+            activeProjects: proyectos,
+            listaActividades: actividades,
+          },
+        });
+      } catch (error) {
+        console.error('Error al conectar con Firestore:', error);
+        if (activo) {
+          setEstado({ fase: 'listo', datos: DATOS_VACIOS });
+        }
+      }
+    };
+
+    iniciarDatos();
+
+    return () => {
+      activo = false;
+    };
+  }, [usuarioAuth]);
 
   return (
     <BrowserRouter>
       <div className="w-100 min-vh-100 bg-light text-dark m-0 p-0 position-relative">
-        
-        <Header 
+        <Header
           onOpenModal={() => setIsModalOpen(true)}
           onLogout={handleLogout}
           onLoginGoogle={handleLoginGoogle}
           isAuthenticated={Boolean(usuarioAuth)}
-          userName={user.email} 
+          userName={user.email}
           userRole="Estudiante"
         />
 
         <Suspense fallback={<Cargando />}>
           <Routes>
-            <Route path="/" element={
-              <main className="container-fluid py-4 px-4" aria-live="polite">
-                {estado.fase === 'cargando' && <DashboardHeaderSkeleton />}
+            <Route
+              path="/"
+              element={
+                <main className="container-fluid py-4 px-4" aria-live="polite">
+                  {estado.fase === 'cargando' && <DashboardHeaderSkeleton />}
 
-                {estado.fase === 'listo' && (
-                  <DashboardHeader 
-                    userName={user.email}
-                    urgentCount={estado.datos.urgentCount}
-                    pendingTasks={estado.datos.pendingTasks}
-                    upcomingExams={estado.datos.upcomingExams}
-                    activeProjects={estado.datos.activeProjects}
-                  />
-                )}
-              </main>
-            } />
+                  {estado.fase === 'listo' && (
+                    <DashboardHeader
+                      userName={user.email}
+                      urgentCount={estado.datos.urgentCount}
+                      pendingTasks={estado.datos.pendingTasks}
+                      upcomingExams={estado.datos.upcomingExams}
+                      activeProjects={estado.datos.activeProjects}
+                    />
+                  )}
+                </main>
+              }
+            />
 
-            <Route path="/recursos" element={
-              <main className="container-fluid py-4 px-4">
-                <ListaRecursos />
-              </main>
-            } />
+            <Route
+              path="/recursos"
+              element={
+                <main className="container-fluid py-4 px-4">
+                  <ListaRecursos />
+                </main>
+              }
+            />
 
-            <Route path="/recursos/:id" element={
-              <main className="container-fluid py-4 px-4">
-                <DetalleRecurso />
-              </main>
-            } />
+            <Route
+              path="/recursos/:id"
+              element={
+                <main className="container-fluid py-4 px-4">
+                  <DetalleRecurso />
+                </main>
+              }
+            />
 
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
 
-        <NotificationFloating 
-          pendingUrgentCount={estado.datos?.urgentCount || 0} 
+        <NotificationFloating
+          pendingUrgentCount={estado.datos?.urgentCount || 0}
         />
 
-        <RegistroModal 
-          isOpen={isModalOpen} 
-          onClose={() => setIsModalOpen(false)} 
-          onGuardadoExitoso={cargarDatosDesdeNube} 
+        <RegistroModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onGuardadoExitoso={cargarDatosDesdeNube}
         />
       </div>
     </BrowserRouter>

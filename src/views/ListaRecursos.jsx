@@ -22,30 +22,51 @@ export default function ListaRecursos() {
   }, []);
 
   useEffect(() => {
-    cargarReportes();
-  }, [cargarReportes]);
+    let activo = true;
+
+    const inicializarReportes = async () => {
+      const lista = await listarReportesClima();
+      if (activo) {
+        setReportes(lista);
+      }
+    };
+
+    inicializarReportes();
+
+    return () => {
+      activo = false;
+    };
+  }, []);
 
   useEffect(() => {
+    let activo = true;
+
     const intentarSincronizar = async () => {
       if (!navigator.onLine || !auth.currentUser) return;
 
       const res = await sincronizarFotosYComentariosConFirebase();
       const totalSubidos = res?.sincronizados ?? res?.subidos ?? 0;
 
-      if (totalSubidos > 0) {
+      if (totalSubidos > 0 && activo) {
         setMensajeEstado({
           tipo: 'success',
           texto: `Sincronizado con Firestore: se enviaron ${totalSubidos} registro(s) desde IndexedDB.`,
         });
-        await cargarReportes();
+        const lista = await listarReportesClima();
+        if (activo) {
+          setReportes(lista);
+        }
       }
     };
 
     window.addEventListener('online', intentarSincronizar);
     intentarSincronizar();
 
-    return () => window.removeEventListener('online', intentarSincronizar);
-  }, [cargarReportes]);
+    return () => {
+      activo = false;
+      window.removeEventListener('online', intentarSincronizar);
+    };
+  }, []);
 
   if (cargando) return <Cargando />;
   if (error) return <ErrorCarga mensaje={error.message} onReintentar={reintentar} />;
@@ -211,7 +232,7 @@ export default function ListaRecursos() {
 
       {/* Historial */}
       <div className="card border-0 shadow-sm rounded-4 p-4">
-        <h6 className="fw-bold mb-3">Comentarios y fotos ({reportes.length})</h6>
+        <h6 className="fw-bold mb-3">Comentarios y fotos fercho2322({reportes.length})</h6>
         {reportes.length === 0 ? (
           <p className="text-muted small mb-0">Aún no hay registros guardados.</p>
         ) : (
