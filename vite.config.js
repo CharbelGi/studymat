@@ -6,7 +6,8 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // Avisa cuando hay una versión nueva; el usuario decide cuándo actualizar
+      registerType: 'prompt',
       includeAssets: ['favicon.ico', 'apple-touch-icon-180x180.png'],
       manifest: {
         id: '/',
@@ -37,15 +38,35 @@ export default defineConfig({
             sizes: '512x512',
             type: 'image/png',
             form_factor: 'wide',
-            label: 'Vista de escritorio StudyMate'
+            label: 'Vista de escritorio StudyMate',
           },
           {
             src: 'pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            label: 'Vista móvil StudyMate'
-          }
-        ]
+            label: 'Vista móvil StudyMate',
+          },
+        ],
+      },
+      workbox: {
+        // 1. Precache: los archivos que genera el build (carpeta dist)
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest}'],
+        // 2. Navegación sin red: cualquier ruta responde con index.html
+        navigateFallback: 'index.html',
+        navigateFallbackDenylist: [/^\/_/, /\/[^/?]+\.[^/]+$/],
+        // 3. En tiempo de ejecución: imágenes de otros dominios
+        runtimeCaching: [
+          {
+            urlPattern: ({ request, sameOrigin }) =>
+              request.destination === 'image' && !sameOrigin,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'imagenes-externas',
+              expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
       },
     }),
   ],
