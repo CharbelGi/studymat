@@ -1,30 +1,9 @@
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
+import { dbLocal } from '../db/local';
 
-const DB_NAME = 'StudyMateReportesDB';
-const DB_VERSION = 1;
-const STORE_NAME = 'reportes';
+const STORE_REPORTES = 'reportes';
 const COLECCION_FIRESTORE = 'reportes_clima';
-
-function abrirDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-    request.onupgradeneeded = (event) => {
-      const database = event.target.result;
-      if (!database.objectStoreNames.contains(STORE_NAME)) {
-        const store = database.createObjectStore(STORE_NAME, {
-          keyPath: 'id',
-          autoIncrement: true,
-        });
-        store.createIndex('sincronizado', 'sincronizado', { unique: false });
-      }
-    };
-
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
 
 function archivoADataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -47,111 +26,82 @@ export async function guardarReporteEnIndexedDB({
   usuarioUid = null,
 }) {
   const previewLocalUrl = await archivoADataUrl(archivoFoto);
-  const database = await abrirDB();
+  const database = await dbLocal;
 
-  return new Promise((resolve, reject) => {
-    const tx = database.transaction(STORE_NAME, 'readwrite');
-    const store = tx.objectStore(STORE_NAME);
+  const registro = {
+    keyUnica: `local_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    estadoClima,
+    comentario: (comentario || '').trim(),
+    tieneFotoLocal: Boolean(archivoFoto),
+    nombreFotoLocal: archivoFoto?.name || null,
+    previewLocalUrl,
+    usuarioEmail,
+    usuarioUid,
+    sincronizado: false,
+    firestoreId: null,
+    creadoEn: new Date().toISOString(),
+  };
 
-    const ahoraISO = new Date().toISOString();
-    const registro = {
-      keyUnica: `local_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-      estadoClima,
-      comentario: (comentario || '').trim(),
-      tieneFotoLocal: Boolean(archivoFoto),
-      nombreFotoLocal: archivoFoto?.name || null,
-      previewLocalUrl,
-      usuarioEmail,
-      usuarioUid,
-      sincronizado: false,
-      firestoreId: null,
-      creadoEn: ahoraISO,
-    };
-
-    const req = store.add(registro);
-    req.onsuccess = () => resolve({ ...registro, id: req.result });
-    req.onerror = () => reject(req.error);
-  });
+  const id = await database.add(STORE_REPORTES, registro);
+  return { ...registro, id };
 }
 
 export async function obtenerReportesLocales() {
-  const database = await abrirDB();
-
-  return new Promise((resolve, reject) => {
-    const tx = database.transaction(STORE_NAME, 'readonly');
-    const store = tx.objectStore(STORE_NAME);
-    const req = store.getAll();
-
-    req.onsuccess = () => {
-      const lista = req.result || [];
-      lista.sort((a, b) => (b.creadoEn || '').localeCompare(a.creadoEn || ''));
-      resolve(lista);
-    };
-    req.onerror = () => reject(req.error);
-  });
+  const database = await dbLocal;
+  const lista = await database.getAll(STORE_REPORTES);
+  return lista.sort((a, b) => (b.creadoEn || '').localeCompare(a.creadoEn || ''));
 }
 
 export async function marcarReporteSincronizado(idLocal, firestoreId) {
-  const database = await abrirDB();
+  const database = await dbLocal;
+  const actual = await database.get(STORE_REPORTES, idLocal);
+  if (!actual) return null;
 
-  return new Promise((resolve, reject) => {
-    const tx = database.transaction(STORE_NAME, 'readwrite');
-    const store = tx.objectStore(STORE_NAME);
-    const getReq = store.get(idLocal);
+  const actualizado = {
+    ...actual,
+    sincronizado: true,
+    firestoreId,
+    usuarioEmail: auth.currentUser?.email || actual.usuarioEmail || 'Invitado',
+    usuarioUid: auth.currentUser?.uid || actual.usuarioUid || null,
+  };
 
-    getReq.onsuccess = () => {
-      const actual = getReq.result;
-      if (!actual) {
-        resolve(null);
-        return;
-      }
-
-      actual.sincronizado = true;
-      actual.firestoreId = firestoreId;
-      actual.usuarioEmail = auth.currentUser?.email || actual.usuarioEmail || 'Invitado';
-      actual.usuarioUid = auth.currentUser?.uid || actual.usuarioUid || null;
-
-      const putReq = store.put(actual);
-      putReq.onsuccess = () => resolve(actual);
-      putReq.onerror = () => reject(putReq.error);
-    };
-
-    getReq.onerror = () => reject(getReq.error);
-  });
+  await database.put(STORE_REPORTES, actualizado);
+  return actualizado;
 }
 
 export async function sincronizarFotosYComentariosConFirebase() {
   const usuario = auth.currentUser;
-  if (!usuario) {
-    return { sincronizados: 0, motivo: 'sin_sesion' };
-  }
-
-  if (!navigator.onLine) {
+  if (!usuario) return { sincronizados: 0, motivo: 'sin_sesion' };
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
     return { sincronizados: 0, motivo: 'sin_conexion' };
   }
 
   const locales = await obtenerReportesLocales();
   const pendientes = locales.filter((item) => !item.sincronizado);
-
   let sincronizados = 0;
 
   for (const item of pendientes) {
     try {
-      const docRef = await addDoc(collection(db, COLECCION_FIRESTORE), {
-        estadoClima: item.estadoClima === 'bien' ? 'bien' : 'mal',
-        comentario: item.comentario || '',
-        tieneFotoLocal: Boolean(item.tieneFotoLocal),
-        nombreFotoLocal: item.nombreFotoLocal || null,
-        autorUid: usuario.uid,
-        autorEmail: usuario.email || null,
-        autorNombre: usuario.displayName || usuario.email || 'Usuario',
-        idLocal: item.id,
-        keyUnica: item.keyUnica,
-        creadoEnLocal: item.creadoEn,
-        creadoEnFirestore: serverTimestamp(),
-      });
+      let firestoreId = item.firestoreId || null;
 
-      await marcarReporteSincronizado(item.id, docRef.id);
+      if (!firestoreId) {
+        const docRef = await addDoc(collection(db, COLECCION_FIRESTORE), {
+          estadoClima: item.estadoClima === 'bien' ? 'bien' : 'mal',
+          comentario: item.comentario || '',
+          tieneFotoLocal: Boolean(item.tieneFotoLocal),
+          nombreFotoLocal: item.nombreFotoLocal || null,
+          autorUid: usuario.uid,
+          autorEmail: usuario.email || null,
+          autorNombre: usuario.displayName || usuario.email || 'Usuario',
+          idLocal: item.id,
+          keyUnica: item.keyUnica,
+          creadoEnLocal: item.creadoEn,
+          creadoEnFirestore: serverTimestamp(),
+        });
+        firestoreId = docRef.id;
+      }
+
+      await marcarReporteSincronizado(item.id, firestoreId);
       sincronizados += 1;
     } catch (error) {
       console.error('Error al sincronizar reporte con Firestore:', error);
